@@ -1,15 +1,17 @@
 <?php
 
-
 namespace classes;
-
 
 abstract class AbstractClass
 {
-    protected function json($json) {
-        ob_start();//
-        header('Content-Type: application/json');
+    protected function json($json, $httpStatus = 200) {
+        header_remove();
+
+        header("Content-type: application/json; charset=utf-8");
+        http_response_code($httpStatus);
+
         echo json_encode($json);
-        return ob_get_clean();//
+
+        exit();
     }
 }
