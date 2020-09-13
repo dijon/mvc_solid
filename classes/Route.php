@@ -5,7 +5,6 @@ namespace classes;
 class Route
 {
     private static $routes = [];
-    private static $pathNotFound = null;
     private static $methodNotAllowed = null;
 
     public static function add($expression, $function, $method = 'get')
@@ -15,11 +14,6 @@ class Route
             'function' => $function,
             'method' => $method,
         ]);
-    }
-
-    public static function pathNotFound($function)
-    {
-        self::$pathNotFound = $function;
     }
 
     public static function methodNotAllowed($function)
@@ -48,7 +42,7 @@ class Route
                     if (is_string($route['function'])) {
                         list($controller, $function) = explode('@', $route['function']);
                         $class = "\\src\\Controllers\\".$controller;
-                        echo call_user_func([new $class(), $function]);
+                        call_user_func([new $class(), $function]);
                     } else {
                         call_user_func_array($route['function'], $matches);
                     }
@@ -71,9 +65,6 @@ class Route
                 }
             } else {
                 header("HTTP/1.0 404 Not Found");
-                if (self::$pathNotFound) {
-                    call_user_func_array(self::$pathNotFound, [$path]);
-                }
             }
         }
     }

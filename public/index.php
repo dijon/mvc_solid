@@ -9,8 +9,8 @@ Route::add('/', function() {
 });
 
 // Simple test route that simulates static html file
-Route::add('/book', 'Book@show', 'get');
-Route::add('/book', 'Book@create', 'post');
+//Route::add('/book', 'Book@show', 'get');
+Route::add('/book', 'Book@create', 'get');
 Route::add('/book', 'Book@update', 'put');
 Route::add('/book', 'Book@delete', 'delete');
 
