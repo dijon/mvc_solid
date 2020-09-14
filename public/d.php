@@ -12,6 +12,7 @@ $paid = 0;
 $price = 0;
 $sumPennies = 0;
 $sumLevs = 0;
+$changeDetails = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $paid = $_POST['paid'];
@@ -28,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$total = (array_sum($pennies) / 100) + array_sum($levs);
 
 $change = $paid - $price;
 
@@ -36,12 +36,47 @@ if ($change < 0) {
     $message = "Грешно въведена стойност за Платено!";
 }
 
-if ($change > $total) {
+if ($message) {
     $message = "Няма налични средства за ресто в касата!";
+} else {
+    krsort($levs); // descending sorting by key
+    foreach ($levs as $lev => $count) {
+        if ($count > 0) {
+            for ($i = 0; $i < $count; $i++) {
+                if (($change - $lev) >= 0) {
+                    $change -= $lev;
+                    $changeDetails[] = $lev;
+                    --$levs[$lev];
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    krsort($pennies); // descending sorting by key
+    foreach ($pennies as $penny => $count) {
+        $lev = $penny / 100;
+        if ($count > 0) {
+            for ($i = 0; $i < $count; $i++) {
+                if (($change - $lev) >= 0) {
+                    $change -= $lev;
+                    $changeDetails[] = $lev;
+                    --$pennies[$penny];
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    print_r($change);
 }
 
-print_r($change);
+print_r($changeDetails);
 //if ($$_POST['price'])
+ksort($levs); // return default sorting by key ASC
+ksort($pennies); // return default sorting by key ASC
 ?>
 
 <!doctype html>
@@ -64,7 +99,7 @@ print_r($change);
         <?php echo $message; ?>
     </div>
     <?php } ?>
-    <h1>Каса - наличност <?php echo $total; ?></h1>
+    <h1>Каса - наличност <?php echo '$total'; ?></h1>
     <div class="">
         <form method="post">
             <h2>Стотинки</h2>
@@ -79,7 +114,7 @@ print_r($change);
             </div>
             <h2>Левове</h2>
             <div class="form-row">
-                <?php foreach ($levs as $lev => $count){ ?>
+                <?php foreach ($levs as $lev => $count) { ?>
                     <div class="form-group col">
                         <label><?php echo $lev; ?> лв.</label>
                         <input type="number" class="form-control"
