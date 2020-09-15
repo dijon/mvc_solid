@@ -4,14 +4,10 @@ const LEV_KEY = 'lev_';
 $message = false;
 
 $pennies = [1 => 0, 2 => 0, 5 => 0, 10 => 0, 20 => 0, 50 => 0];
-// TODO pennies /100
 $levs = [1 => 0, 2 => 0, 5 => 0, 10 => 0, 20 => 0, 50 => 0, 100 => 0];
-// TODO ресто от банкноти по 100 няма!!!
 
 $paid = 0;
 $price = 0;
-$sumPennies = 0;
-$sumLevs = 0;
 $changeDetails = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -29,15 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-
 $change = $paid - $price;
 
-if ($change < 0) {
+if ($change < 0 || $change > 99.99) {
     $message = "Грешно въведена стойност за Платено!";
-}
-
-if ($message) {
-    $message = "Няма налични средства за ресто в касата!";
 } else {
     krsort($levs); // descending sorting by key
     foreach ($levs as $lev => $count) {
@@ -57,10 +48,11 @@ if ($message) {
     krsort($pennies); // descending sorting by key
     foreach ($pennies as $penny => $count) {
         $lev = $penny / 100;
+
         if ($count > 0) {
             for ($i = 0; $i < $count; $i++) {
                 if (($change - $lev) >= 0) {
-                    $change -= $lev;
+                    $change = round($change - $lev, 2);
                     $changeDetails[] = $lev;
                     --$pennies[$penny];
                 } else {
@@ -69,12 +61,12 @@ if ($message) {
             }
         }
     }
-
-    print_r($change);
 }
 
-print_r($changeDetails);
-//if ($$_POST['price'])
+if ($change > 0) {
+    $message = "Няма налични средства за ресто в касата!";
+}
+
 ksort($levs); // return default sorting by key ASC
 ksort($pennies); // return default sorting by key ASC
 ?>
@@ -95,21 +87,29 @@ ksort($pennies); // return default sorting by key ASC
 
 <div class="container">
     <?php if ($message) { ?>
-    <div class="alert alert-warning" role="alert">
-        <?php echo $message; ?>
-    </div>
+        <div class="alert alert-warning" role="alert">
+            <?php echo $message; ?>
+        </div>
     <?php } ?>
-    <h1>Каса - наличност <?php echo '$total'; ?></h1>
+    <?php if (!empty($changeDetails) && $change == 0) { ?>
+        <div class="alert alert-success" role="alert">
+            <h3>Ресто</h3>
+            <?php  foreach ($changeDetails as $detail) { ?>
+                <?php echo $detail; ?> лв.<br>
+            <?php } ?>
+        </div>
+    <?php } ?>
+    <h1>Каса</h1>
     <div class="">
         <form method="post">
             <h2>Стотинки</h2>
             <div class="form-row">
                 <?php foreach ($pennies as $penny => $count){ ?>
-                <div class="form-group col">
-                    <label><?php echo $penny; ?> ст.</label>
-                    <input type="number" class="form-control"
-                           name="<?php echo PENNY_KEY . $penny; ?>" value="<?php echo $count; ?>">
-                </div>
+                    <div class="form-group col">
+                        <label><?php echo $penny; ?> ст.</label>
+                        <input type="number" class="form-control"
+                               name="<?php echo PENNY_KEY . $penny; ?>" value="<?php echo $count; ?>">
+                    </div>
                 <?php } ?>
             </div>
             <h2>Левове</h2>
