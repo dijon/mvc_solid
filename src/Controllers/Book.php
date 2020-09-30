@@ -20,7 +20,11 @@ class Book extends AbstractClass
             if(!$db){
                 echo $db->lastErrorMsg();
             } else {
-                echo "Opened database successfully\n";
+                $db->exec("CREATE TABLE books(id INTEGER PRIMARY KEY, name TEXT)");
+                $stmt = $db->prepare("INSERT INTO books(name) VALUES (:book)");
+                $stmt->bindValue(':book', 'proba', SQLITE3_TEXT);
+                $stmt->execute();
+                echo "Row inserted successfully\n";
             }
         }
         catch(\Exception $e)
